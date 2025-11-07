@@ -1,0 +1,32 @@
+services:
+  db:
+    image: mariadb:10.5
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wpuser
+      MYSQL_PASSWORD: wppass
+    volumes:
+      - db_data:/var/lib/mysql
+
+  wordpress:
+    image: wordpress:latest
+    restart: always
+    ports:
+      - "4080:80"
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: wpuser
+      WORDPRESS_DB_PASSWORD: wppass
+    volumes:
+      - ./wp-content:/var/www/html/wp-content
+      - ./init.sh:/usr/local/bin/init.sh
+    depends_on:
+      - db
+    command: ["/bin/bash", "-c", "/usr/local/bin/init.sh && apache2-foreground"]
+
+volumes:
+  db_data:
+

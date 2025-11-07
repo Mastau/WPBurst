@@ -1,2 +1,3 @@
-# JetBurst
-Jetburst – Exploitation Framework for Jetpack (WordPress)
+# WPBurst
+WPburst – Exploitation Framework for wordpress
+
