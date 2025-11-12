@@ -22,3 +22,30 @@ Objectifs:
 - Commencer la conception de l'architecture (Core (Back)/ CLI (Front) / Modules (Plugins))
 - Commencer le dev engine (Core)
 - Realiser le wiki au fur et a mesure
+
+
+Listing tools: (Medium / Writeup / Github)
+
+> Ma propre liste d'outils (Pour tous les Chall) : https://github.com/stars/Mastau/lists/ctf + Wappalyzer
+
+Outils classiques:
+- BurpSuite (Proxy / Scanner / Intruder)
+- Owasp ZAP (Scanning / Fuzzing)
+- Nikto (Scanning)
+- SqlMap (Auto SQLInjection)
+- Vega (Scan XSS, SQL & other vuln)
+- Wfuzz (Scanning / Fuzzing)
+- SkipFish (Recursive Crawler & intelligent heuristics)
+- WpScan (Wordpress Enum)
+- Acunetix (Enum XSS / SQL Injection)
+- Metasploit (All in One Exploit framework)
+
+Recommandations pour pentest Wordpress:
+- Wappalyzer (WebExt Gather Information) (Super)
+- WPIntel (WebExt Gather Information) (Connais pas mais complet)
+- Nmap (Network Discovery) (Hors-sujet je connais les endpoints)
+- ffuf (Directory discovering) (Les endpoints wp & plugins vulnerable sont deja connu mais toujours utile)
+- Nuclei (Scans) (Connais pas )
+- WPScan (Enum Vuln) (Super mais 10 call API per day)
+- Commix (Cmd injection)
+- Metasploit (Exploit framework) (Je vais faire mieux tu verras)
