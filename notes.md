@@ -143,3 +143,13 @@ Version exacte vulnérable	+5	Jetpack 13.8
 Version non précisée mais plugin détecté	+2	“jetpack” détecté sans version
 Réponse HTTP anormale (403/401)	-1	
 Exploit déjà testé sans succès	-3
+
+
+### Semaine du 17/11
+
+Objectifs:
+- Commencer le dev engine (Core) 
+    -> Recon (Enumeration)
+- Schéma architecture ?
+- Debut wiki (Gitbooks)
+
