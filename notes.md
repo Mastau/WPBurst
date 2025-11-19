@@ -153,3 +153,8 @@ Objectifs:
 - Schéma architecture ?
 - Debut wiki (Gitbooks)
 
+FAIT: 
+- Commencer le dev engine
+- Mise en place arborenscence modulaire en python (Analyse existant)
+- Rework Lab (Passage sur NGINX et via une nouvelle config pour + de rapidité)
+- Chercher des solutions concernant les rewrite rules des endpoints wordpress (/wp-content/plugins/asd/index.php == 200 )

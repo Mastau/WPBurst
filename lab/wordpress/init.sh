@@ -33,5 +33,7 @@ if [ ! -f wp-config.php ]; then
         --allow-root
 fi
 
+wp plugin install contact-form-7 --version=5.0.3 --activate --allow-root
+
 exec "$@"
 
