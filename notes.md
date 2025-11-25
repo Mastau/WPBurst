@@ -187,3 +187,15 @@ FAIT:
 
 ça fonctionne ! (Ptite barre de chargement, elapse time ? c'est affreux)
 [+] Checking plugins 7750/80086 (64.0/s, ETA 1130s) (Trouvé sur StackOverflow) > 64/s (Super lent, requests pas fait pour du massivescan (meme si je multithread)) (use aiohttp ou httpx + asyncio plus tard)
+
+
+Le rewrite depend du setting
+Permalink > Plain (Default ? Depend of CLI install ??)
+IDENTIFIER CETTE FEATURE !!!!!!!
+
+Si Plain (Need fingerprint)
+Si Postname > (Fun, wp-json setup par exemple > Endpoint exposure !!!) (Passer le lab en Postname par default ?)
+
+Enum tous les plugins ?? (Bonne chose ?)
+-> Peut-etre lors du rework juste maxi parsing de la home page (Wappalyzer le fait :/) > Check ce que fait WPScan
+-> Est-ce que TOUS les plugins ont leur script dans la home page ? (Question V2)

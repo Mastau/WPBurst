@@ -34,6 +34,8 @@ if [ ! -f wp-config.php ]; then
 fi
 
 wp plugin install contact-form-7 --version=5.0.3 --activate --allow-root
+wp option update permalink_structure "/%postname%/" --allow-root
+wp rewrite flush --hard --allow-root
 
 exec "$@"
 
