@@ -6,6 +6,7 @@ WPBurst - Enumeration module for Wordpress
 import requests
 from urllib.parse import urljoin
 import re
+import hashlib
 
 class WPEnumerator:
     def __init__(self, base_url: str):
@@ -15,6 +16,7 @@ class WPEnumerator:
             "User-Agent": "WPBurst/1.0",
             "Accept": "application/json, */*;q=0.9",
         })
+        self._home_fingerprint = None
 
     def _get(self, path: str):
         try:
@@ -22,6 +24,30 @@ class WPEnumerator:
             return self.session.get(url, timeout=7)
         except Exception:
             return None
+    
+    def _fingerprint(self, text: str):
+        """Return page fingerprint (size + hash)"""
+        if not text:
+            return None
+        return (len(text), hashlib.md5(text.encode(errors="ignore")).hexdigest())
+
+    def _get_home_fingerprint(self):
+        """Get home page fingerprint"""
+        if self._home_fingerprint is None:
+            r = self._get("")
+            if r and r.text:
+                self._home_fingerprint = self._fingerprint(r.text)
+        return self._home_fingerprint
+
+    def _is_homepage_like(self, response):
+        """Return true if response == home page fingerprint"""
+        if not response or not response.text:
+            return False
+        home_fp = self._get_home_fingerprint()
+        if not home_fp:
+            return False
+        return self._fingerprint(response.text) == home_fp
+
 
     # ------------------------ Detect WordPress ------------------------
     def detect_wordpress(self):
@@ -63,22 +89,23 @@ class WPEnumerator:
                 print(f"[+] Version with readme.html: {m.group(1)}")
                 return m.group(1)
 
-        print("[-] Version introuvable")
+        print("[-] Version not found")
         return None
 
     # ------------------------ Plugins ------------------------
     def enumerate_plugins(self):
-        print("[+] Énumération des plugins…")
+        print("[+] Listing plugins")
         found = set()
 
-        # Heuristique de plugins connus
+        # List common plugins (Use an extrnal list asap/ import custom list)
         common_plugins = [
             "akismet", "jetpack", "woocommerce", "wordfence",
             "contact-form-7", "wpforms", "elementor", "yoast-seo"
         ]
         for p in common_plugins:
             r = self._get(f"wp-content/plugins/{p}/")
-            if r and r.status_code == 200:
+            # bypass rewrite rules
+            if r and r.status_code == 200 and not self._is_homepage_like(r):
                 found.add(p)
 
         # Parsing HTML
@@ -88,15 +115,35 @@ class WPEnumerator:
             for m in matches:
                 found.add(m)
 
-        # readme.txt des plugins trouvés
+        # Check plugins found
+        confirmed = set()
         for p in found:
-            r = self._get(f"wp-content/plugins/{p}/readme.txt")
-            if r and r.status_code == 200:
-                print(f"    ↳ readme find for {p}")
+            # Read readme.txt
+            r_readme = self._get(f"wp-content/plugins/{p}/readme.txt")
+            if r_readme and r_readme.status_code == 200 and not self._is_homepage_like(r_readme):
+                print(f"    -> readme found for {p}")
+                confirmed.add(p)
+                continue  # c’est bon, plugin confirmé
 
-        if not found:
+            # Check unique file ({plugin}.php) :w
+            r_main = self._get(f"wp-content/plugins/{p}/{p}.php")
+            if r_main and r_main.status_code == 200 and not self._is_homepage_like(r_main):
+                print(f"    -> main file found for {p}")
+                confirmed.add(p)
+                continue
+
+            r_assets = self._get(f"wp-content/plugins/{p}/assets/")
+            if r_assets and r_assets.status_code == 200 and not self._is_homepage_like(r_assets):
+                print(f"    -> assets dir exists for {p}")
+                confirmed.add(p)
+                continue
+
+        if not confirmed:
             print("[-] No plugins found")
-        return list(found)
+            return []
+
+        return sorted(confirmed)
+
 
     # ------------------------ Themes ------------------------
     def enumerate_themes(self):

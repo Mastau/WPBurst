@@ -158,3 +158,20 @@ FAIT:
 - Mise en place arborenscence modulaire en python (Analyse existant)
 - Rework Lab (Passage sur NGINX et via une nouvelle config pour + de rapidité)
 - Chercher des solutions concernant les rewrite rules des endpoints wordpress (/wp-content/plugins/asd/index.php == 200 )
+
+
+
+Liste modulaire de plugins externe et pas en dure
+
+
+### Semaine du 24/11
+
+Objectifs :
+- Finir la partie Enumeration du Core
+- Creer un module CVE (Afin de preparer le terrain pour la suite)
+- Wiki/doc ?
+- Monter en compétence sur des Challs
+
+FAIT:
+- Fix plugins enumeration (Bypass rewrite rules WP)
+    -> Utilisation d'un fingerprint de la home page (Comme vu semaine derniere)
