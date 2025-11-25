@@ -74,6 +74,19 @@ class WPEnumerator:
             return plugin
         return None
 
+    def _extract_version_from_readme(self, text):
+        """ Extract plugin version from readme.txt (Stable tag)"""
+        match = re.search(r"Stable tag:\s*([0-9.]+)", text, re.IGNORECASE)
+        if match:
+            return match.group(1)
+
+        # Some thime use Version: (weird case)
+        match = re.search(r"Version:\s*([0-9.]+)", text, re.IGNORECASE)
+        if match:
+            return match.group(1)
+
+        return None
+
     # ------------------------ Detect WordPress ------------------------
     def detect_wordpress(self):
         tests = ["wp-login.php", "readme.html"]
@@ -121,7 +134,7 @@ class WPEnumerator:
     def enumerate_plugins(self, wordlist=None):
         print("[+] Listing plugins")
         found = set()
- 
+        plugin_info = {}
 
         #If external wordlist provide
         if wordlist:
@@ -179,9 +192,9 @@ class WPEnumerator:
             # Read readme.txt
             r_readme = self._get(f"wp-content/plugins/{p}/readme.txt")
             if r_readme and r_readme.status_code == 200 and not self._is_homepage_like(r_readme):
-                print(f"    -> readme found for {p}")
-                confirmed.add(p)
-                continue 
+                version = self._extract_version_from_readme(r_readme.text)
+                print(f"    -> readme found for {p} (version: {version})")
+                plugin_info[p] = version
 
             # Check unique file ({plugin}.php) :w
             r_main = self._get(f"wp-content/plugins/{p}/{p}.php")
@@ -201,6 +214,64 @@ class WPEnumerator:
             return []
 
         return sorted(confirmed)
+
+    # ------------------------ Endpoints ------------------------
+    def enumerate_rest_api(self):
+        print("[+] Enumerating WordPress REST API endpoints…")
+
+        rest = {
+            "root_available": False,
+            "namespaces": [],
+            "routes": {},
+            "valid_routes": [],
+            "invalid_routes": [],
+            "errors": []
+        }
+
+        # Get wp-json
+        r = self._get("wp-json")
+        if not r:
+            print("[-] Cannot access /wp-json/")
+            return rest
+
+        try:
+            j = r.json()
+        except:
+            print("[-] /wp-json/ did not return JSON (rewrite/stale config?)")
+            return rest
+
+        rest["root_available"] = True
+
+        namespaces = j.get("namespaces", [])
+        rest["namespaces"] = namespaces
+
+        routes = j.get("routes", {})
+        rest["routes"] = list(routes.keys())
+
+        print(f"    [+] {len(routes)} routes detected in /wp-json/")
+        print(f"    [+] Namespaces: {', '.join(namespaces)}")
+
+        # Analyse each route
+        for route in routes:
+            full = "wp-json" + route
+            rr = self._get(full)
+            # If homepage (permalink : plain)
+            if rr and not self._is_homepage_like(rr):
+                try:
+                    jr = rr.json()
+                    if isinstance(jr, dict) and jr.get("code") == "rest_no_route":
+                        rest["invalid_routes"].append(route)
+                    else:
+                        rest["valid_routes"].append(route)
+                except:
+                    rest["errors"].append(route)
+            else:
+                rest["invalid_routes"].append(route)
+
+        print(f"    [+] Valid routes found: {len(rest['valid_routes'])}")
+        print(f"    [+] Invalid routes: {len(rest['invalid_routes'])}")
+
+        return rest
 
 
     # ------------------------ Themes ------------------------
