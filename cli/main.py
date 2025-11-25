@@ -8,10 +8,10 @@ def main():
 
     wp = WPEnumerator(args.url)
 
-    print("[*] Lancement de l'énumération…")
+    print("[*] Start enumerate")
     wp.detect_wordpress()
     wp.get_version()
-    wp.enumerate_plugins()
+    wp.enumerate_plugins("plugins.txt")
     wp.enumerate_themes()
     wp.enumerate_users()
 

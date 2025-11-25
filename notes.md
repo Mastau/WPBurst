@@ -175,3 +175,15 @@ Objectifs :
 FAIT:
 - Fix plugins enumeration (Bypass rewrite rules WP)
     -> Utilisation d'un fingerprint de la home page (Comme vu semaine derniere)
+- Mise en place de la liste de plugins > Scraping de http://plugins.svn.wordpress.org/ (Y a tout eheheheh: +100k plugins)
+    -> Je reprend le scraper de Perfectdotexe (github)
+
+[*] Start enumerate
+[+] WordPress detect with wp-login.php
+[+] Version with meta: 6.8.3
+[+] Listing plugins
+[+] Loaded 80086 plugins from wordlist 'plugins.txt'
+    [+] Found plugin folder: akismet
+
+ça fonctionne ! (Ptite barre de chargement, elapse time ? c'est affreux)
+[+] Checking plugins 7750/80086 (64.0/s, ETA 1130s) (Trouvé sur StackOverflow) > 64/s (Super lent, requests pas fait pour du massivescan (meme si je multithread)) (use aiohttp ou httpx + asyncio plus tard)

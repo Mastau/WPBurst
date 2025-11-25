@@ -7,6 +7,11 @@ import requests
 from urllib.parse import urljoin
 import re
 import hashlib
+import os
+import sys
+import time
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 class WPEnumerator:
     def __init__(self, base_url: str):
@@ -24,7 +29,22 @@ class WPEnumerator:
             return self.session.get(url, timeout=7)
         except Exception:
             return None
-    
+
+    def _load_wordlist(self, wordlist_path):
+        """
+        Load external plugin list
+        return slugs list
+        """
+        if not os.path.isabs(wordlist_path):
+            wordlist_path = os.path.join(BASE_DIR, wordlist_path)
+        try:
+            with open(wordlist_path, "r", encoding="utf-8") as f:
+                lines = [line.strip() for line in f if line.strip() and not line.startswith("#")]
+            return lines
+        except Exception as e:
+            print(f"[!] Can't read '{wordlist_path}': {e}")
+            return []
+
     def _fingerprint(self, text: str):
         """Return page fingerprint (size + hash)"""
         if not text:
@@ -48,6 +68,11 @@ class WPEnumerator:
             return False
         return self._fingerprint(response.text) == home_fp
 
+    def _check_plugin(self, plugin):
+        r = self._get(f"wp-content/plugins/{plugin}/")
+        if r and r.status_code == 200 and not self._is_homepage_like(r):
+            return plugin
+        return None
 
     # ------------------------ Detect WordPress ------------------------
     def detect_wordpress(self):
@@ -93,28 +118,61 @@ class WPEnumerator:
         return None
 
     # ------------------------ Plugins ------------------------
-    def enumerate_plugins(self):
+    def enumerate_plugins(self, wordlist=None):
         print("[+] Listing plugins")
         found = set()
+ 
 
-        # List common plugins (Use an extrnal list asap/ import custom list)
-        common_plugins = [
-            "akismet", "jetpack", "woocommerce", "wordfence",
-            "contact-form-7", "wpforms", "elementor", "yoast-seo"
-        ]
-        for p in common_plugins:
-            r = self._get(f"wp-content/plugins/{p}/")
-            # bypass rewrite rules
+        #If external wordlist provide
+        if wordlist:
+            plugin_list = self._load_wordlist(wordlist)
+            if plugin_list:
+                print(f"[+] Loaded {len(plugin_list)} plugins from wordlist '{wordlist}'")
+            else:
+                print("[!] Wordlist empty or invalid, using default list.")
+                plugin_list = []
+        else:
+            plugin_list = []
+
+        if not plugin_list:
+        # List common plugins            
+            plugin_list = [
+                "akismet", "jetpack", "woocommerce", "wordfence",
+                "contact-form-7", "wpforms", "elementor", "yoast-seo"
+            ]
+        start = time.time()
+
+        total = len(plugin_list)
+        checked = 0
+        for plugin in plugin_list:
+            checked += 1
+            #Update every 50 check
+            if checked % 100 == 0:
+                elapsed = time.time() - start
+                speed = checked / elapsed
+                eta = (total - checked) / speed if speed > 0 else 0
+
+                sys.stdout.write(
+                    f"\r[+] Checking plugins {checked}/{total} "
+                    f"({speed:.1f}/s, ETA {eta:.0f}s)"
+                )
+                sys.stdout.flush()
+
+            r = self._get(f"wp-content/plugins/{plugin}/")
+
             if r and r.status_code == 200 and not self._is_homepage_like(r):
-                found.add(p)
-
+                sys.stdout.write("\r" + " " * 120 + "\r")
+                sys.stdout.flush()
+                print(f"    [+] Found plugin folder: {plugin}")
+                found.add(plugin)
+        sys.stdout.write("\r" + " " * 120 + "\r")
+        sys.stdout.flush()
         # Parsing HTML
         r = self._get("")
         if r:
             matches = re.findall(r"wp-content/plugins/([^/]+)/", r.text)
             for m in matches:
                 found.add(m)
-
         # Check plugins found
         confirmed = set()
         for p in found:
@@ -123,7 +181,7 @@ class WPEnumerator:
             if r_readme and r_readme.status_code == 200 and not self._is_homepage_like(r_readme):
                 print(f"    -> readme found for {p}")
                 confirmed.add(p)
-                continue  # c’est bon, plugin confirmé
+                continue 
 
             # Check unique file ({plugin}.php) :w
             r_main = self._get(f"wp-content/plugins/{p}/{p}.php")
