@@ -137,3 +137,14 @@ PR bienvenues !
 
 Soon..
 
+
+------------------------------------------------------------------------
+
+## Remerciements
+
+[K@rlBl0ck](https://github.com/Karlblock)\
+[at0m741](https://github.com/at0m741)\
+[bonsthie](https://github.com/bonsthie)
+
+
+
