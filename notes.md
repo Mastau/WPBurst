@@ -180,6 +180,7 @@ FAIT:
 - Improve system enum plugins (+ plugins version)
 - Ajout enum endpoint WP (wp-json)
 - Ajout premier module CVE (CVE-2018-20979) + Listing modules & auto check
+- Readme & structure doc technique
 
 
 [*] Start enumerate
@@ -203,3 +204,66 @@ Si Postname > (Fun, wp-json setup par exemple > Endpoint exposure !!!) (Passer l
 Enum tous les plugins ?? (Bonne chose ?)
 -> Peut-etre lors du rework juste maxi parsing de la home page (Wappalyzer le fait :/) > Check ce que fait WPScan
 -> Est-ce que TOUS les plugins ont leur script dans la home page ? (Question V2)
+
+Structre Doc:
+Intro/Overview (Present readme)
+- Vision du projet, objectifs technique architecture generale, public cible
+Getting Started
+- Installation, pre requis, comment lancer le projet, structure du repo
+Architecture technique
+- Architecture global (Schema ascii ou diagrame), Description composants, flow execution, data echangées
+Enumeration WP
+- explications du fonctionnement (Comment ça fonctionne, strategies d'enum, comment on extrait les plugins, comment on compare les version)
+Module CVE
+- Structure d'un module, variable obligatoire, method obligatoire, comment load un module (c'est automatique eheh)
+Creer un module CVE
+- Tutoriel setp by step: create file, ajout var & id, ecrire le check(), tester integration, conseils (BONUS: Checklist)
+API Interne (Code reference)
+- Doc fonction clé, class method
+Roadmap Technique
+- liste claire (moteur cve, exploit active, reporting?, unit test?, ect..)
+Annexe
+- Ressources utiles, convention de code, schema de plugins wp, 
+
+
+RAJOUTER LE LAB!!!! (Doc & Readme)
+
+Choix de la license ? 
+- evilginx2: BSD 3-Clause
+- gitleak: MIT
+- ffuf: MIT
+- gobuster: Apache 2.0
+
+## Semaine du 01/12
+
+Objectifs:
+- Dev engine, calcul "exploit score"
+- Un nouveau module ? (Meme plugin?) > (Mieux penser le systeme de module, mais hors cadre MVP ?)
+- Scraper wordlist plugins
+- Ameliorer l'ensemble
+- Doc/Wiki DEV !!!!!
+- Monter en compétence sur des Challs
+
+## Semaine du 08/12
+
+
+
+
+
+
+
+
+
+
+
+# TODO REWORK (Semestre 2 ?)
+
+- Passive detection, parsing home page et on grab les scripts (Par defaut) > L'enumeration via wordlist est optionnel
+- Interesting Findings (Headers, robots.txt, XML-rpc, readme, wp-cron, wp version, wp theme, Permalink)
+- Plugin :
+    - Plugin version (If outdated ?)
+    - Found / confirm by
+- Rework module ?
+- Better CLI ?
+- Better lab (CLI de lab ?)
+    - Pouvoir faire des preconfig docker pour test des trucs 
