@@ -146,13 +146,15 @@ class WPEnumerator:
                 plugin_list = []
         else:
             plugin_list = []
-
+        
+        ####NEED TO BE DELETE SOON####
         if not plugin_list:
         # List common plugins            
             plugin_list = [
                 "akismet", "jetpack", "woocommerce", "wordfence",
                 "contact-form-7", "wpforms", "elementor", "yoast-seo"
             ]
+
         start = time.time()
 
         total = len(plugin_list)
@@ -180,12 +182,14 @@ class WPEnumerator:
                 found.add(plugin)
         sys.stdout.write("\r" + " " * 120 + "\r")
         sys.stdout.flush()
+
         # Parsing HTML
         r = self._get("")
         if r:
             matches = re.findall(r"wp-content/plugins/([^/]+)/", r.text)
             for m in matches:
                 found.add(m)
+
         # Check plugins found
         confirmed = set()
         for p in found:
@@ -213,7 +217,7 @@ class WPEnumerator:
             print("[-] No plugins found")
             return []
 
-        return sorted(confirmed)
+        return plugin_info
 
     # ------------------------ Endpoints ------------------------
     def enumerate_rest_api(self):

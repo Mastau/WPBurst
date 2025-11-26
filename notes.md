@@ -176,7 +176,11 @@ FAIT:
 - Fix plugins enumeration (Bypass rewrite rules WP)
     -> Utilisation d'un fingerprint de la home page (Comme vu semaine derniere)
 - Mise en place de la liste de plugins > Scraping de http://plugins.svn.wordpress.org/ (Y a tout eheheheh: +100k plugins)
-    -> Je reprend le scraper de Perfectdotexe (github)
+    -> Je reprend le scraper de Perfectdotexe (github) (RETIRED (Back soon with arg parser :/))
+- Improve system enum plugins (+ plugins version)
+- Ajout enum endpoint WP (wp-json)
+- Ajout premier module CVE (CVE-2018-20979) + Listing modules & auto check
+
 
 [*] Start enumerate
 [+] WordPress detect with wp-login.php
