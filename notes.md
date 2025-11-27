@@ -179,7 +179,7 @@ FAIT:
     -> Je reprend le scraper de Perfectdotexe (github) (RETIRED (Back soon with arg parser :/))
 - Improve system enum plugins (+ plugins version)
 - Ajout enum endpoint WP (wp-json)
-- Ajout premier module CVE (CVE-2018-20979) + Listing modules & auto check
+-- Ajout premier module CVE (CVE-2018-20979) + Listing modules & auto check
 - Readme & structure doc technique
 
 
@@ -228,19 +228,41 @@ Annexe
 
 RAJOUTER LE LAB!!!! (Doc & Readme)
 
-Choix de la license ? 
+Choix de la license ?
+mit : les gens peuvent faire ce qu'il veulent mais doivent te crédite + tu a tous les droit de vente sur le projet (ce que je prendrais imo)
+les gpl : oblige les personne qui l’utilise a rendre open source
+apache : c'est bien pr du commercial
+WTFPL :  do the fuck you want liscence
+
+Nmap/wpscan
+
+
 - evilginx2: BSD 3-Clause
 - gitleak: MIT
 - ffuf: MIT
 - gobuster: Apache 2.0
+- hydra: gpl 3.0
+
+Scoring>
+Generer un rapport output et scorer l'analyse
+Outil d'aide a la decision (Attaque ou remediation)
+A quoi sert-il ? > Trouver une justification!
+
+Determiner l'impact du score
+? trigger qque chose ?
+
+
 
 ## Semaine du 01/12
 
 Objectifs:
 - Dev engine, calcul "exploit score"
+    - Justifier l'impact du score (Pourquoi, a quoi ça sert)
 - Un nouveau module ? (Meme plugin?) > (Mieux penser le systeme de module, mais hors cadre MVP ?)
 - Scraper wordlist plugins
 - Ameliorer l'ensemble
+- Amelioration performance
+- Pre dedection
 - Doc/Wiki DEV !!!!!
 - Monter en compétence sur des Challs
 
