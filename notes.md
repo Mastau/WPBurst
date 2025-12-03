@@ -259,12 +259,108 @@ Objectifs:
 - Dev engine, calcul "exploit score"
     - Justifier l'impact du score (Pourquoi, a quoi ça sert)
 - Un nouveau module ? (Meme plugin?) > (Mieux penser le systeme de module, mais hors cadre MVP ?)
-- Scraper wordlist plugins
 - Ameliorer l'ensemble
 - Amelioration performance
 - Pre dedection
 - Doc/Wiki DEV !!!!!
 - Monter en compétence sur des Challs
+
+
+Scoring System:
+1) le scoring sert a prioriser les vulnerabilités exploitables
+WP génere bcp de vuln potentielles:
+- fausses alertes
+- plugins installé mais non utilisé
+- environnements protégés par WAF
+- versions détectées partiellement
+- endpoints REST désactivés
+- exploit impossible dans le contexte réel
+
+Le role du score > distinguer la vulnérabilité réellement exploitable
+d’une vulnérabilité "théorique".
+
+Sans scoring, WPBurst serait juste un scanner de versions outdated.
+
+2) le Score permet d'eviter les faux positifs
+Beaucoup d’outils détectent une CVE uniquement sur la base :
+version ≤ vulnérable
+plugin installé
+
+Résultat → énorme taux de faux positifs, surtout sur WordPress.
+
+Le score WPBurst intègre :
+- ambiguïté des versions
+- confirmation via endpoints / signatures / comportements
+- absence/presence de fonctionnalités nécessaires à l'exploit
+- risque que l’exploit échoue en conditions réelles
+> Le score devient un indicateur de confiance, pas juste de gravité.
+
+3) Le score est un outil de prise de décision
+WPBurst peut être utilisé par :
+un attaquant (pentest offensif)
+un défenseur (audit de sécurité)
+un pipeline CI/CD (scans automatisés)
+
+Le score permet d'affirmer :
+"Parmi toutes les vulnérabilités détectées, voici celle qui a le plus de chances de réussir dans le contexte réel."
+
+4) Le score sert de base à un futur moteur d’exploitation
+Dans une version avancée, WPBurst pourra :
+- auto-sélectionner un exploit
+- auto-exécuter run() du module le plus pertinent
+- éviter de lancer un exploit "bruyant" ou voué à échouer
+Le score devient un mécanisme automatique de sélection d’exploit.
+
+5) Le score permet une analyse contextualisée
+Le CVSS seul ne suffit pas.
+Exemple concret WordPress :
+Deux vulnérabilités CVSS 7.0 :
+l’une exploitable via REST activé,
+l’autre via un fichier admin accessible seulement aux Editors.
+
+Dans WPBurst :
+si REST est actif → score augmente
+si rôle requis n’est pas accessible → score chute
+si signature spécifique est détectée → score augmente fortement
+Le score = CVSS contextualisé à ton scan réel.
+
+6) Permet une approche probabiliste
+Les exploitations WordPress dépendent de beaucoup de conditions dynamiques :
+endpoints REST activés ?
+fichiers protégés ?
+WAF actif ?
+version exacte du plugin inconnue ?
+plugin forké ou modifié ?
+Le scoring permet de mesurer :
+
+la probabilité réelle de succès d'un exploit
+et pas juste :
+"La version est vulnérable donc c'est exploitable".
+
+7) Le score permet de prendre des decision (Triggers)
+Exploit automatique :
+if score >= 12:
+    try exploit()
+
+Arret d'une pipeline CI/CD
+if score >= 8:
+    exit(1)
+
+Alert monitoring
+if score >= 10:
+   send_alert("High exploitability vulnerability found on target")
+
+8) Le score sert à comparer plusieurs CVE entre elles
+CVE	            Score	Raison
+CVE-2024-9926	14.38	Confirmed REST endpoint, low ambiguity
+CVE-2023-4215	6.8	    High uncertainty, no endpoint
+
+“Laquelle est la plus exploitable dans CE contexte précis ?”
+
+
+
+FAIT:
+- Justifier l'interet de l'impact score
 
 ## Semaine du 08/12
 
@@ -289,3 +385,4 @@ Objectifs:
 - Better CLI ?
 - Better lab (CLI de lab ?)
     - Pouvoir faire des preconfig docker pour test des trucs 
+    48mmnt25 JfAYhxyc
