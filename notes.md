@@ -359,8 +359,12 @@ CVE-2023-4215	6.8	    High uncertainty, no endpoint
 
 
 
+Ajout exept keyboardInterrupt ? eviter les erreurs python quand on quitte ?
+
+
 FAIT:
 - Justifier l'interet de l'impact score
+- Rework with ThreadPoolExecutor (Passage de 64/s a ~250/s avec 10 workers) > ~ x4 plus rapide
 
 ## Semaine du 08/12
 

@@ -10,6 +10,7 @@ import hashlib
 import os
 import sys
 import time
+import concurrent.futures
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -22,6 +23,7 @@ class WPEnumerator:
             "Accept": "application/json, */*;q=0.9",
         })
         self._home_fingerprint = None
+        self.max_workers = 50
 
     def _get(self, path: str):
         try:
@@ -68,7 +70,7 @@ class WPEnumerator:
             return False
         return self._fingerprint(response.text) == home_fp
 
-    def _check_plugin(self, plugin):
+    def _check_plugin_dir(self, plugin):
         r = self._get(f"wp-content/plugins/{plugin}/")
         if r and r.status_code == 200 and not self._is_homepage_like(r):
             return plugin
@@ -132,91 +134,105 @@ class WPEnumerator:
 
     # ------------------------ Plugins ------------------------
     def enumerate_plugins(self, wordlist=None):
-        print("[+] Listing plugins")
+        print("[+] Listing plugins (Multithreaded)")
         found = set()
         plugin_info = {}
 
-        #If external wordlist provide
         if wordlist:
             plugin_list = self._load_wordlist(wordlist)
-            if plugin_list:
-                print(f"[+] Loaded {len(plugin_list)} plugins from wordlist '{wordlist}'")
-            else:
+            if not plugin_list:
                 print("[!] Wordlist empty or invalid, using default list.")
-                plugin_list = []
         else:
             plugin_list = []
         
-        ####NEED TO BE DELETE SOON####
         if not plugin_list:
-        # List common plugins            
             plugin_list = [
                 "akismet", "jetpack", "woocommerce", "wordfence",
-                "contact-form-7", "wpforms", "elementor", "yoast-seo"
+                "contact-form-7", "wpforms", "elementor", "yoast-seo",
+                "revslider", "all-in-one-seo-pack"
             ]
+            print(f"[+] Using default list with {len(plugin_list)} plugins.")
+        else:
+             print(f"[+] Loaded {len(plugin_list)} plugins from wordlist.")
 
         start = time.time()
-
         total = len(plugin_list)
-        checked = 0
-        for plugin in plugin_list:
-            checked += 1
-            #Update every 50 check
-            if checked % 100 == 0:
-                elapsed = time.time() - start
-                speed = checked / elapsed
-                eta = (total - checked) / speed if speed > 0 else 0
+        
+        print(f"[+] Checking existence of {total} plugins with {self.max_workers} threads...")
+        
+        with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            future_to_plugin = {executor.submit(self._check_plugin_dir, plugin): plugin for plugin in plugin_list}
+            
+            checked_count = 0
+            for future in concurrent.futures.as_completed(future_to_plugin):
+                plugin = future_to_plugin[future]
+                checked_count += 1
+                
+                try:
+                    result = future.result()
+                    if result:
+                        sys.stdout.write("\r" + " " * 120 + "\r") 
+                        print(f"    [+] Found plugin folder: {result}")
+                        found.add(result)
+                except Exception as exc:
+                    sys.stderr.write(f"\n[!] Plugin {plugin} generated an exception: {exc}")
+                
+                if checked_count % 50 == 0 or checked_count == total:
+                    elapsed = time.time() - start
+                    speed = checked_count / elapsed if elapsed > 0 else 0
+                    eta = (total - checked_count) / speed if speed > 0 else 0
+                    
+                    sys.stdout.write(
+                        f"\r[+] Checking plugins {checked_count}/{total} "
+                        f"({speed:.1f}/s, ETA {eta:.0f}s)"
+                    )
+                    sys.stdout.flush()
 
-                sys.stdout.write(
-                    f"\r[+] Checking plugins {checked}/{total} "
-                    f"({speed:.1f}/s, ETA {eta:.0f}s)"
-                )
-                sys.stdout.flush()
-
-            r = self._get(f"wp-content/plugins/{plugin}/")
-
-            if r and r.status_code == 200 and not self._is_homepage_like(r):
-                sys.stdout.write("\r" + " " * 120 + "\r")
-                sys.stdout.flush()
-                print(f"    [+] Found plugin folder: {plugin}")
-                found.add(plugin)
-        sys.stdout.write("\r" + " " * 120 + "\r")
+        sys.stdout.write("\r" + " " * 120 + "\r") 
         sys.stdout.flush()
-
-        # Parsing HTML
+        
+        if found:
+            print(f"[+] Initial check finished. Found {len(found)} potential plugins.")
+        else:
+            print("[-] Initial check did not find any plugin folders.")
+            
         r = self._get("")
         if r:
             matches = re.findall(r"wp-content/plugins/([^/]+)/", r.text)
             for m in matches:
-                found.add(m)
+                if m not in found:
+                    print(f"    [+] Found plugin via HTML source: {m}")
+                    found.add(m)
 
-        # Check plugins found
         confirmed = set()
+        print("\n[+] Detailed verification of found plugins...")
         for p in found:
-            # Read readme.txt
+            version = None
+            
             r_readme = self._get(f"wp-content/plugins/{p}/readme.txt")
             if r_readme and r_readme.status_code == 200 and not self._is_homepage_like(r_readme):
                 version = self._extract_version_from_readme(r_readme.text)
-                print(f"    -> readme found for {p} (version: {version})")
-                plugin_info[p] = version
-
-            # Check unique file ({plugin}.php) :w
+                print(f"    -> Readme found for {p} (Version: {version or 'N/A'})")
+                confirmed.add(p)
+            
             r_main = self._get(f"wp-content/plugins/{p}/{p}.php")
             if r_main and r_main.status_code == 200 and not self._is_homepage_like(r_main):
-                print(f"    -> main file found for {p}")
+                print(f"    -> Main file found for {p}")
                 confirmed.add(p)
-                continue
-
+                
             r_assets = self._get(f"wp-content/plugins/{p}/assets/")
             if r_assets and r_assets.status_code == 200 and not self._is_homepage_like(r_assets):
-                print(f"    -> assets dir exists for {p}")
+                print(f"    -> Assets directory exists for {p}")
                 confirmed.add(p)
-                continue
+
+            if p in confirmed:
+                plugin_info[p] = version
 
         if not confirmed:
-            print("[-] No plugins found")
-            return []
+            print("[-] No plugins confirmed after detailed checks.")
+            return {}
 
+        print(f"[+] Total confirmed plugins: {len(confirmed)}")
         return plugin_info
 
     # ------------------------ Endpoints ------------------------
