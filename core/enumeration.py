@@ -314,7 +314,7 @@ class WPEnumerator:
             print("[-] No theme found")
         return list(themes)
 
-    # ------------------------ Utilisateurs ------------------------
+    # ------------------------ Users ------------------------
     def enumerate_users(self, limit=10):
         print("[+] User enumeration")
         users = []

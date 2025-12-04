@@ -5,6 +5,7 @@ CVE_ID = "CVE-2020-35489"
 DESCRIPTION = "Contact Form 7 < 5.3.2 - Unrestricted File Upload"
 PLUGIN_SLUG = "contact-form-7"
 VULN_MAX_VERSION = "5.3.1"
+CVSS = 9.8
 
 
 # ------------- Version helpers -------------------------------------------
@@ -52,13 +53,18 @@ def check(enum_data):
         }
 
     if _is_vulnerable_version(installed):
+        signature_score = 4.0 
+        required_endpoint = None
         return {
             "cve": CVE_ID,
             "plugin": PLUGIN_SLUG,
+            "cvss": CVSS,
             "version": installed,
             "vulnerable": True,
-            "details": f"{installed} <= {VULN_MAX_VERSION}"
-        }
+            "details": f"{installed} <= {VULN_MAX_VERSION}",
+            "required_endpoint": required_endpoint, 
+            "signature_match_score": signature_score
+            }
 
     return None
 

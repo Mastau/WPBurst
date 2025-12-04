@@ -359,19 +359,27 @@ CVE-2023-4215	6.8	    High uncertainty, no endpoint
 
 “Laquelle est la plus exploitable dans CE contexte précis ?”
 
-
-
 Ajout exept keyboardInterrupt ? eviter les erreurs python quand on quitte ?
+
 
 
 FAIT:
 - Justifier l'interet de l'impact score
 - Rework with ThreadPoolExecutor (Passage de 64/s a ~250/s avec 10 workers) > ~ x4 plus rapide
 - V1 Doc technique > https://github.com/Mastau/WPBurst/wiki
+- Add Impact Score system (v1)
+
+
+
+
 
 ## Semaine du 08/12
 
-
+A Faire:
+- Finir CLI ! (Args parser, opts, bref un cli fonctionnel et un scan end2end qui fonctionne avec)
+- Le rapport pour le 14 :x (oskour)
+- Update la doc en fonction
+- Better Readme
 
 
 

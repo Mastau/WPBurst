@@ -5,6 +5,7 @@ CVE_ID = "CVE-2018-20979"
 DESCRIPTION = "Contact Form 7 <= 5.0.3 - Privilege Escalation"
 PLUGIN_SLUG = "contact-form-7"
 VULN_MAX_VERSION = "5.0.3"
+CVSS = 7.4
 
 
 # ------------- Version helpers -------------------------------------------
@@ -52,12 +53,18 @@ def check(enum_data):
         }
 
     if _is_vulnerable_version(installed):
+        required_endpoint = None
+        signature_score = 2.0
         return {
             "cve": CVE_ID,
             "plugin": PLUGIN_SLUG,
+            "cvss": CVSS,
             "version": installed,
             "vulnerable": True,
-            "details": f"{installed} <= {VULN_MAX_VERSION}"
+            "required_endpoint": "/wp-json/jetpack/v4/",
+            "details": f"{installed} <= {VULN_MAX_VERSION}",
+            "required_endpoint": required_endpoint, 
+            "signature_match_score": signature_score
         }
 
     return None
