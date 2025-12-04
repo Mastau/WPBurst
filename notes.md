@@ -210,6 +210,8 @@ Intro/Overview (Present readme)
 - Vision du projet, objectifs technique architecture generale, public cible
 Getting Started
 - Installation, pre requis, comment lancer le projet, structure du repo
+Lab
+- Presentation du lab docker, comment le modifier ect..
 Architecture technique
 - Architecture global (Schema ascii ou diagrame), Description composants, flow execution, data echangées
 Enumeration WP
@@ -365,6 +367,7 @@ Ajout exept keyboardInterrupt ? eviter les erreurs python quand on quitte ?
 FAIT:
 - Justifier l'interet de l'impact score
 - Rework with ThreadPoolExecutor (Passage de 64/s a ~250/s avec 10 workers) > ~ x4 plus rapide
+- V1 Doc technique > https://github.com/Mastau/WPBurst/wiki
 
 ## Semaine du 08/12
 
