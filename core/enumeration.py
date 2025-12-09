@@ -11,6 +11,7 @@ import os
 import sys
 import time
 import concurrent.futures
+import threading
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -23,7 +24,8 @@ class WPEnumerator:
             "Accept": "application/json, */*;q=0.9",
         })
         self._home_fingerprint = None
-        self.max_workers = 50
+        self.max_workers = 20
+        self.stop_event = threading.Event()
 
     def _get(self, path: str):
         try:
@@ -164,29 +166,37 @@ class WPEnumerator:
             future_to_plugin = {executor.submit(self._check_plugin_dir, plugin): plugin for plugin in plugin_list}
             
             checked_count = 0
-            for future in concurrent.futures.as_completed(future_to_plugin):
-                plugin = future_to_plugin[future]
-                checked_count += 1
-                
-                try:
-                    result = future.result()
-                    if result:
-                        sys.stdout.write("\r" + " " * 120 + "\r") 
-                        print(f"    [+] Found plugin folder: {result}")
-                        found.add(result)
-                except Exception as exc:
-                    sys.stderr.write(f"\n[!] Plugin {plugin} generated an exception: {exc}")
-                
-                if checked_count % 50 == 0 or checked_count == total:
-                    elapsed = time.time() - start
-                    speed = checked_count / elapsed if elapsed > 0 else 0
-                    eta = (total - checked_count) / speed if speed > 0 else 0
+            try: 
+                for future in concurrent.futures.as_completed(future_to_plugin):
+                    if self.stop_event.is_set():
+                        break
+                    plugin = future_to_plugin[future]
+                    checked_count += 1
                     
-                    sys.stdout.write(
-                        f"\r[+] Checking plugins {checked_count}/{total} "
-                        f"({speed:.1f}/s, ETA {eta:.0f}s)"
-                    )
-                    sys.stdout.flush()
+                    try:
+                        result = future.result()
+                        if result:
+                            sys.stdout.write("\r" + " " * 120 + "\r") 
+                            print(f"    [+] Found plugin folder: {result}")
+                            found.add(result)
+                    except Exception as exc:
+                        sys.stderr.write(f"\n[!] Plugin {plugin} generated an exception: {exc}")
+                
+                    if checked_count % 50 == 0 or checked_count == total:
+                        elapsed = time.time() - start
+                        speed = checked_count / elapsed if elapsed > 0 else 0
+                        eta = (total - checked_count) / speed if speed > 0 else 0
+                    
+                        sys.stdout.write(
+                            f"\r[+] Checking plugins {checked_count}/{total} "
+                            f"({speed:.1f}/s, ETA {eta:.0f}s)"
+                        )
+                        sys.stdout.flush()
+            except KeyboardInterrupt:
+                self.stop_event.set()
+                for future in future_to_plugin:
+                    future.cancel()
+                raise
 
         sys.stdout.write("\r" + " " * 120 + "\r") 
         sys.stdout.flush()
